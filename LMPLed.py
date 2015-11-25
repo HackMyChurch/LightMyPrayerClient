@@ -164,7 +164,7 @@ class LMPLed:
 
         #ratioTime = self.brightness + ratioTime
 
-        print("Ratio = " + str(ratioTime) + " : " + "brightness = " + str(self.brightness))
+        # print("Ratio = " + str(ratioTime) + " : " + "brightness = " + str(self.brightness))
         
         # Brightness is ratio ;)
         # print("Cureent Birghtness : " + str(ratioTime))
@@ -183,35 +183,35 @@ class LMPLed:
 #Main test loop
 #################################################################
     
-leds = LMPLed() # LEDS driver
-leds.setColor(white)
+# leds = LMPLed() # LEDS driver
+# leds.setColor(white)
 
-pygame.init()
-fen = pygame.display.set_mode((200,200))
+# pygame.init()
+# fen = pygame.display.set_mode((200,200))
 
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.KEYUP:
-            print("eventKey : " + str(event.key))
+# while True:
+#     for event in pygame.event.get():
+#         if event.type == pygame.KEYUP:
+#             print("eventKey : " + str(event.key))
             
-            if event.key == pygame.K_UP:
-                leds.fadeIn(10.0)
+#             if event.key == pygame.K_UP:
+#                 leds.fadeIn(10.0)
 
-            if event.key == pygame.K_DOWN:
-                leds.fadeOut(5.0)
+#             if event.key == pygame.K_DOWN:
+#                 leds.fadeOut(5.0)
                 
-            if event.key == pygame.K_LEFT:
-                leds.fix()
+#             if event.key == pygame.K_LEFT:
+#                 leds.fix()
                 
-            if event.key == pygame.K_RIGHT:
-                leds.wait(2.0)
+#             if event.key == pygame.K_RIGHT:
+#                 leds.wait(2.0)
             
-    # Fade to white
-    leds.update()
+#     # Fade to white
+#     leds.update()
 
-    if(leds.fadeIsDone==True):
-        leds.wait(10.0)
-        leds.fadeIsDone = False
+#     if(leds.fadeIsDone==True):
+#         leds.wait(10.0)
+#         leds.fadeIsDone = False
 
         
         
