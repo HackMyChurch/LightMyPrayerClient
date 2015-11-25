@@ -67,7 +67,9 @@ leds = LMPLed.LMPLed() # LEDS driver
 leds.setColor(leds.WHITE)
 ###############################################################################
 
+#
 # Hack pour recuperer l'ip du client.
+#
 def get_lan_last_ip_num():
 	# Hackish function to get ip addr on linux...
     ip = os.popen("ifconfig eth0 | grep 'inet'").read().split(':')[1]
@@ -75,9 +77,14 @@ def get_lan_last_ip_num():
     last_ip_num = str(ip).split('.')[3]
     return last_ip_num
 
-# Genere un numero de session pour avoir un nom d'image unique 
+#
+# Genere un numero de client pour avoir un nom d'image unique 
+#
 client_name = "raspberry-" + get_lan_last_ip_num()
 
+#
+# Mettre a jour l'angle du servo-moteur
+#
 def update(angle):
 	# Valeurs calibrees de maniere empirique
   	duty = float(angle) / 8.8 + 2.5
@@ -85,16 +92,25 @@ def update(angle):
 	pwm.ChangeDutyCycle(duty)
 	pwm.stop
 
+#
+# fermer la trappe
+#
 def close_the_door():
 	print "Lock lock lockin' the heaven door..."
 	update(180)
 	is_locked = True
 
+#
+# Ouvrir la trappe
+#
 def open_the_door():
 	print "Stairway to heaven..."
 	update(90)
 	is_locked = False
 
+#
+# Predre la photo du galet en tenant compte des reglages fait en configuration
+#
 def capture_image(i):
 	# fixer la lumiere
 	leds.fix()
@@ -123,12 +139,28 @@ def capture_image(i):
 		cam.stop_preview()
 		return image_name
 
+#
+# Sauvegarder l'index de la derniere image generee afin 
+# d'eviter l'ecrasement au prochain redemarrage du client
+#
 def save_next_img_index():
 	global idx
 	idx += 1
 	cfgimg.set('images', 'next_img_index', idx)
 	write_config()
 
+#
+# Algo de detaction du galet
+# Si la valeur du catpeur est superieur au seuil de detection de la trappe
+# on regarder si l'on detecte une main ou un galet (differences de seuil)
+# Il faut donc aussi comparer la valeur lue avec la precedente, 
+# ce qui permet de detecter la main, et de ne prendre la photo que par la suite
+#
+#                 main
+#               /-------------\    galet
+#  trappe      /               \____________ 
+#  ___________/
+#
 def stone_detection():
 	global last_detection_value
 	ok_for_taking_pic = False
@@ -151,7 +183,9 @@ def stone_detection():
 			
 	return ok_for_taking_pic	
 
+#
 # Poster l'image au serveur de diffusion
+#
 def post_picture(name):
 	# Eteindre progressivement les LEDs
 	leds.fadeOut(fade_out_time)
@@ -163,7 +197,9 @@ def post_picture(name):
 	except requests.exceptions.ConnectionError:
 		print ("ERROR : Can't upload pic. Server is probably down !")
 
+#
 # Sauvegarder l'index de la prochaine image a generer pour ne rien ecraser
+#
 def write_config():
 	cfgimg.write(open(IMG_CONFIG_FILE,'w'))
 
@@ -172,7 +208,7 @@ def write_config():
 close_the_door()
 last_detection_value = seuil_detection_trappe
 
-##################################################################
+########################## M A I N ###############################
 while True:
 	try:
 		# 1. Voir si l'on detecte une main qui pose le galet

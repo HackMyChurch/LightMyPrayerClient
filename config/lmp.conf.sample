@@ -18,7 +18,7 @@ wait_time = 2
 url_upload = http://192.168.1.59:9292/lmp/image/upload
 
 [camera]
-#
+# 2592x1944, 1280x720 , ..., 640x480
 resolution_h = 1024
 resolution_v = 768
 
