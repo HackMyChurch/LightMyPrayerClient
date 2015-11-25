@@ -51,6 +51,7 @@ is_locked = True
 
 
 def get_lan_last_ip_num():
+	# Hackish function to get ip addr on linux...
     ip = os.popen("ifconfig eth0 | grep 'inet'").read().split(':')[1]
     ip = str(ip).split(' ')[0]
     last_ip_num = str(ip).split('.')[3]
