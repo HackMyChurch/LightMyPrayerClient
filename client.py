@@ -98,11 +98,32 @@ def open_the_door():
 def capture_image(i):
 	# fixer la lumiere
 	leds.fix()
+	image_name = client_name + '_%03d.jpg' % i
 	with picamera.PiCamera() as cam:
+	cam.sharpness = 0
+	cam.contrast = 50
+	cam.brightness = 50
+	cam.saturation = 0
+	cam.ISO = 100
+	cam.video_stabilization = False
+	cam.exposure_compensation = 0
+	cam.exposure_mode = 'auto'
+	cam.meter_mode = 'average'
+	cam.awb_mode = 'incandescent'
+	cam.image_effect = 'none'
+	cam.color_effects = None
+	cam.rotation = 0
+	cam.hflip = True # False
+	cam.vflip = True # False
+	cam.crop = (0.0, 0.0, 1.0, 1.0)
+		# cam.resolution = (1024, 768)
+		# { u'horizon': 9, u'off': 0, u'cloudy': 3, u'shade': 4, u'fluorescent': 6, 
+		# u'tungsten': 5, u'auto': 1, u'flash': 8, u'sunlight': 2, u'incandescent': 7 }
+		# cam.awb_mode(8)
 		print "Takin' a pic..."
+		# cam.ISO(100)
 		# Prendre la photo
 		cam.start_preview()
-		image_name = client_name + '_%03d.jpg' % i
 		cam.capture(img_dir + '/' + image_name)
 		cam.stop_preview()
 		return image_name
