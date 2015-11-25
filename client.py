@@ -16,7 +16,7 @@ import os
 import LMPLed
 
 CONFIG_FILE = "config/lmp.conf"
-IMG_CONFIG_FILE = "config/img_index.conf"
+IMG_CONFIG_FILE = "config/img.conf"
 
 # Lecture du fichier de configuration
 cfg = ConfigParser.ConfigParser()
@@ -135,6 +135,7 @@ def stone_detection():
 			
 	return ok_for_taking_pic	
 
+# Poster l'image au serveur de diffusion
 def post_picture(name):
 	# Eteindre progressivement les LEDs
 	leds.fadeOut(fade_out_time)
@@ -146,6 +147,7 @@ def post_picture(name):
 	except requests.exceptions.ConnectionError:
 		print ("ERROR : Can't upload pic. Server is probably down !")
 
+# Sauvegarder l'index de la prochaine image a generer pour ne rien ecraser
 def write_config():
 	cfgimg.write(open(IMG_CONFIG_FILE,'w'))
 
