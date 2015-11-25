@@ -14,12 +14,17 @@ import requests
 
 # Constantes
 IMG_DIR = "/home/pi/lmp/img"
-LMP_SERVER = "http://192.168.0.25:9292/lmp/image/upload"
+# LMP_SERVER = "http://192.168.0.25:9292/lmp/image/upload"
+LMP_SERVER = "http://192.168.1.59:9292/lmp/image/upload"
+# LMP_SERVER = ""
+WAIT_AFTER_PIC = 1
+WAIT_AFTER_OPEN = 0.6
+WAIT_AFTER_CYCLE = 1
 
 # Variables de seuil pour la detection
-seuil_detection_trappe = 1.4860
-seuil_detection_main = 1.9500
-seuil_detection_galet = 1.8000
+seuil_detection_trappe = 1.550
+seuil_detection_galet = 1.825
+seuil_detection_main =  2.595
 
 last_detection_value = seuil_detection_trappe
 
@@ -68,7 +73,7 @@ def capture_image(i):
     with picamera.PiCamera() as cam:
         print "Takin' a pic..."
         cam.start_preview()
-        image_name = 'image_%3d.jpg' % i
+        image_name = 'image_%03d.jpg' % i
         cam.capture(IMG_DIR + '/' + image_name)
         cam.stop_preview()
         return image_name
@@ -81,19 +86,27 @@ def stone_detection():
 	if detection_value > seuil_detection_trappe:
 		if detection_value > seuil_detection_main:
 			print("Hand is here ! (%f)" % detection_value)
+			last_detection_value = detection_value
 			ok_for_taking_pic = False
 		else:
 			if last_detection_value > seuil_detection_galet:
 				print ("Stone detected (%f)" % detection_value)
+				# ici on remet la valeur precedente a la valeur de la trappe
+				# pour eviter de prendre en compte les oscillations
+				last_detection_value = seuil_detection_trappe
 				ok_for_taking_pic =  True
-	last_detection_value = detection_value		
+			
 	return ok_for_taking_pic
 
 def post_picture(name):
-	data = { 'image':  open(IMG_DIR + '/' + name) }
-	r = requests.post(LMP_SERVER, files=data)
-	print(r.json)
-	print(r.text)
+	try:
+		if LMP_SERVER != "":
+			data = { 'image':  open(IMG_DIR + '/' + name) }
+			r = requests.post(LMP_SERVER, files=data)
+			print(r.json)
+			print(r.text)
+	except requests.exceptions.ConnectionError:
+		print ("ERROR : Can't upload pic. Server is probably down !")
 
 # root = Tk()
 # root.wm_title('Controle des seuils de detection')
@@ -116,14 +129,14 @@ while True:
 			img = capture_image(idx)
 			post_picture(img)
 			idx += 1
-			time.sleep(2)
+			time.sleep(WAIT_AFTER_PIC)
 			# 3. Faire tomber le galet
 			open_the_door()
 			# 4. Refermer la trappe
-			time.sleep(1)
+			time.sleep(WAIT_AFTER_OPEN)
 			close_the_door()
 			
-		time.sleep(1)
+		time.sleep(WAIT_AFTER_CYCLE)
 	# Quit on Ctrl+C
 	except KeyboardInterrupt:
 		close_the_door()
