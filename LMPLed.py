@@ -4,20 +4,13 @@
 
 import opc
 import math, time, datetime
-import pygame
-
-
-
-#################################################################
-# Global variables
-#################################################################
-black = [ (0,0,0) ]
-white = [ (255,255,255) ]
 
 #################################################################
 # Class able to drive Leds
 #################################################################
 class LMPLed:
+    BLACK = [ (0,0,0) ]
+    WHITE = [ (255,255,255) ]
 
     modeFix = "fix"
     modeWait = "wait"
@@ -28,7 +21,7 @@ class LMPLed:
     numLEDs = 512
     client = opc.Client('localhost:7890')
 
-    ledsColor = black
+    ledsColor = BLACK
     brightness = 1.0
     minBright = 0.2
     maxBright = 1.0
@@ -44,7 +37,8 @@ class LMPLed:
     #constructor
     # set all leds to black
     def __init__(self):
-        self.setColor(black)
+        print "init de la classe..."
+        self.setColor(self.BLACK)
         self.update()
 
     # set the new color of leds (depneding to brightness
@@ -178,40 +172,6 @@ class LMPLed:
         pixels = [ (r,g,b) ] * self.numLEDs
         self.client.put_pixels(pixels)
 
-           
-#################################################################
-#Main test loop
-#################################################################
-    
-# leds = LMPLed() # LEDS driver
-# leds.setColor(white)
-
-# pygame.init()
-# fen = pygame.display.set_mode((200,200))
-
-# while True:
-#     for event in pygame.event.get():
-#         if event.type == pygame.KEYUP:
-#             print("eventKey : " + str(event.key))
-            
-#             if event.key == pygame.K_UP:
-#                 leds.fadeIn(10.0)
-
-#             if event.key == pygame.K_DOWN:
-#                 leds.fadeOut(5.0)
-                
-#             if event.key == pygame.K_LEFT:
-#                 leds.fix()
-                
-#             if event.key == pygame.K_RIGHT:
-#                 leds.wait(2.0)
-            
-#     # Fade to white
-#     leds.update()
-
-#     if(leds.fadeIsDone==True):
-#         leds.wait(10.0)
-#         leds.fadeIsDone = False
 
         
         

@@ -7,8 +7,8 @@ import LMPLed
 #Main test loop
 #################################################################
     
-leds = LMPLed() # LEDS driver
-leds.setColor(white)
+leds = LMPLed.LMPLed() # LEDS driver
+leds.setColor(leds.WHITE)
 
 pygame.init()
 fen = pygame.display.set_mode((200,200))
