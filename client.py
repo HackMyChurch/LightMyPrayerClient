@@ -11,20 +11,23 @@ import RPi.GPIO as GPIO
 import time
 import picamera
 import requests
+import ConfigParser
+
+# Lecture du fichier de configuration
+cfg = ConfigParser.ConfigParser()
+cfg.read('config/lmp.conf')
 
 # Constantes
-IMG_DIR = "/home/pi/lmp/img"
-# LMP_SERVER = "http://192.168.0.25:9292/lmp/image/upload"
-LMP_SERVER = "http://192.168.1.59:9292/lmp/image/upload"
-# LMP_SERVER = ""
-WAIT_AFTER_PIC = 1
-WAIT_AFTER_OPEN = 0.6
-WAIT_AFTER_CYCLE = 1
+lmp_server = cfg.get('server', 'url')
+
+wait_after_pic   = cfg.getfloat('client', 'wait_after_pic')
+wait_after_open  = cfg.getfloat('client', 'wait_after_open')
+wait_after_cycle = cfg.getfloat('client', 'wait_after_cycle')
 
 # Variables de seuil pour la detection
-seuil_detection_trappe = 1.550
-seuil_detection_galet = 1.825
-seuil_detection_main =  2.595
+seuil_detection_trappe = cfg.getfloat('sensor_calibration', 'seuil_detection_trappe')
+seuil_detection_main   = cfg.getfloat('sensor_calibration', 'seuil_detection_main')
+seuil_detection_galet  = cfg.getfloat('sensor_calibration', 'seuil_detection_galet')
 
 last_detection_value = seuil_detection_trappe
 
@@ -41,6 +44,9 @@ pwm = GPIO.PWM(r.IO0, 100)
 idx = 0
 # Etat du servo de la trappe
 is_locked = True
+# Repertoire des images
+img_dir = cfg.get('client', 'img_dir')
+
 
 # class App:
 
@@ -74,7 +80,7 @@ def capture_image(i):
         print "Takin' a pic..."
         cam.start_preview()
         image_name = 'image_%03d.jpg' % i
-        cam.capture(IMG_DIR + '/' + image_name)
+        cam.capture(img_dir + '/' + image_name)
         cam.stop_preview()
         return image_name
 
@@ -100,9 +106,9 @@ def stone_detection():
 
 def post_picture(name):
 	try:
-		if LMP_SERVER != "":
-			data = { 'image':  open(IMG_DIR + '/' + name) }
-			r = requests.post(LMP_SERVER, files=data)
+		if lmp_server != "":
+			data = { 'image':  open(img_dir + '/' + name) }
+			r = requests.post(lmp_server, files=data)
 			print(r.json)
 			print(r.text)
 	except requests.exceptions.ConnectionError:
@@ -129,14 +135,14 @@ while True:
 			img = capture_image(idx)
 			post_picture(img)
 			idx += 1
-			time.sleep(WAIT_AFTER_PIC)
+			time.sleep(wait_after_pic)
 			# 3. Faire tomber le galet
 			open_the_door()
 			# 4. Refermer la trappe
-			time.sleep(WAIT_AFTER_OPEN)
+			time.sleep(wait_after_open)
 			close_the_door()
 			
-		time.sleep(WAIT_AFTER_CYCLE)
+		time.sleep(wait_after_cycle)
 	# Quit on Ctrl+C
 	except KeyboardInterrupt:
 		close_the_door()
