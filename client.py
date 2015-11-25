@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ##################################################################
 #               L I G H T   M Y   P R A Y E R 
 #
@@ -5,21 +6,22 @@
 #
 # Il faut que la cam soit au moins a 25 cm du galet.
 ##################################################################
-from Tkinter import *
 from raspiomix import Raspiomix
 import RPi.GPIO as GPIO
 import time
 import picamera
 import requests
 import ConfigParser
+import os
 
 # Lecture du fichier de configuration
 cfg = ConfigParser.ConfigParser()
 cfg.read('config/lmp.conf')
 
-# Constantes
-lmp_server = cfg.get('server', 'url')
+# Urls Serveur
+url_upload = cfg.get('server', 'url_upload')
 
+# Temps d'attente du scenario
 wait_after_pic   = cfg.getfloat('client', 'wait_after_pic')
 wait_after_open  = cfg.getfloat('client', 'wait_after_open')
 wait_after_cycle = cfg.getfloat('client', 'wait_after_cycle')
@@ -41,22 +43,21 @@ ir_sensor = 0
 # Pilotage Servo-moteur
 pwm = GPIO.PWM(r.IO0, 100)
 # Index des images
-idx = 0
-# Etat du servo de la trappe
-is_locked = True
+idx = cfg.getint('client', 'next_img_index')
 # Repertoire des images
 img_dir = cfg.get('client', 'img_dir')
+# Etat du servo de la trappe
+is_locked = True
 
 
-# class App:
+def get_lan_last_ip_num():
+    ip = os.popen("ifconfig eth0 | grep 'inet'").read().split(':')[1]
+    ip = str(ip).split(' ')[0]
+    last_ip_num = str(ip).split('.')[3]
+    return last_ip_num
 
-#    def __init__(self, master):
-#        frame = Frame(master)
-#        frame.pack()
-#        scale = Scale(seuil_detection_trappe, from_=0, to=5,
-#              orient=HORIZONTAL, command=self.update)
-#        scale.grid(row=0)
-
+# Genere un numero de session pour avoir un nom d'image unique 
+client_name = "raspberry-" + get_lan_last_ip_num()
 
 def update(angle):
 	# Valeurs calibrees de maniere empirique
@@ -79,10 +80,15 @@ def capture_image(i):
     with picamera.PiCamera() as cam:
         print "Takin' a pic..."
         cam.start_preview()
-        image_name = 'image_%03d.jpg' % i
+        image_name = client_name + '_%03d.jpg' % i
         cam.capture(img_dir + '/' + image_name)
         cam.stop_preview()
         return image_name
+
+def save_next_img_index():
+	global idx
+	idx += 1
+	cfg.set('client', 'next_img_index', idx)
 
 def stone_detection():
 	global last_detection_value
@@ -102,23 +108,16 @@ def stone_detection():
 				last_detection_value = seuil_detection_trappe
 				ok_for_taking_pic =  True
 			
-	return ok_for_taking_pic
+	return ok_for_taking_pic	
 
 def post_picture(name):
 	try:
-		if lmp_server != "":
+		if url_upload != "":
 			data = { 'image':  open(img_dir + '/' + name) }
-			r = requests.post(lmp_server, files=data)
+			r = requests.post(url_upload, files=data)
 			print(r.json)
-			print(r.text)
 	except requests.exceptions.ConnectionError:
 		print ("ERROR : Can't upload pic. Server is probably down !")
-
-# root = Tk()
-# root.wm_title('Controle des seuils de detection')
-# app = App(root)
-# root.geometry("200x50+0+0")
-# root.mainloop()
 
 ##################################################################
 # Etat initial
@@ -134,17 +133,21 @@ while True:
 			# 2. Prendre un photo du galet
 			img = capture_image(idx)
 			post_picture(img)
-			idx += 1
+			# 3. Sauvegarder l'index de la prochaine image
+			save_next_img_index()
+			# 4. Petite tempo pour permettre le traitement de la capture
 			time.sleep(wait_after_pic)
-			# 3. Faire tomber le galet
+			# 5. Faire tomber le galet
 			open_the_door()
-			# 4. Refermer la trappe
+			# 6. Temporiser juste assez pour avoir le rebond de la trappe
 			time.sleep(wait_after_open)
+			# 7. Refermer la trappe
 			close_the_door()
-			
+		# Tempo de fin de cycle.
 		time.sleep(wait_after_cycle)
 	# Quit on Ctrl+C
 	except KeyboardInterrupt:
 		close_the_door()
 		GPIO.cleanup()
 		break
+
