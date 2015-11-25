@@ -16,3 +16,57 @@ wait_time = 2
 
 [server]
 url_upload = http://192.168.1.59:9292/lmp/image/upload
+
+[camera]
+#
+resolution_h = 1024
+resolution_v = 768
+
+# between -100 and 100
+sharpness = 100
+
+# between -100 and 100
+contrast = 100
+
+# 0 to 100
+brightness = 100
+
+# between -100 and 100
+saturation = 100
+
+# 100, 200, 400, 800
+ISO = 100
+
+# True or False
+video_stabilization = False
+
+# -25 to +25
+exposure_compensation = 0
+
+# , off, auto, night, nightpreview, backlight, spotlight, sports, 
+# snow, beach, verylong, fixedfps, antishake, fireworks
+exposure_mode = sports
+
+# average, spot, backlit, matrix
+meter_mode = average
+
+# off, auto, sunlight, cloudy, shade, tungsten, fluorescent, incandescent, flash, horizon
+awb_mode = incandescent
+
+# none, negative, solarize, sketch, denoise, emboss, 
+# oilpaint, hatch, gpen, pastel, watercolor, film, blur, saturation
+image_effect = negative
+
+# default None, 0 to 128
+color_effects_1 = 128
+color_effects_2 = 128
+
+# Valid values are 0, 90, 180, and 270
+rotation = 0
+
+# True or False
+hflip = True
+
+# True or False
+vflip = True
+

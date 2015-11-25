@@ -100,28 +100,23 @@ def capture_image(i):
 	leds.fix()
 	image_name = client_name + '_%03d.jpg' % i
 	with picamera.PiCamera() as cam:
-	cam.sharpness = 0
-	cam.contrast = 50
-	cam.brightness = 50
-	cam.saturation = 0
-	cam.ISO = 100
-	cam.video_stabilization = False
-	cam.exposure_compensation = 0
-	cam.exposure_mode = 'auto'
-	cam.meter_mode = 'average'
-	cam.awb_mode = 'incandescent'
-	cam.image_effect = 'none'
-	cam.color_effects = None
-	cam.rotation = 0
-	cam.hflip = True # False
-	cam.vflip = True # False
-	cam.crop = (0.0, 0.0, 1.0, 1.0)
-		# cam.resolution = (1024, 768)
-		# { u'horizon': 9, u'off': 0, u'cloudy': 3, u'shade': 4, u'fluorescent': 6, 
-		# u'tungsten': 5, u'auto': 1, u'flash': 8, u'sunlight': 2, u'incandescent': 7 }
-		# cam.awb_mode(8)
+		cam.resolution = (cfg.getint('camera', 'resolution_h'), cfg.getint('camera', 'resolution_v'))
+		cam.sharpness = cfg.getint('camera', 'sharpness')
+		cam.contrast = cfg.getint('camera', 'contrast')
+		cam.brightness = cfg.getint('camera', 'brightness')
+		cam.saturation = cfg.getint('camera', 'saturation')
+		cam.ISO = cfg.getint('camera', 'ISO')
+		cam.video_stabilization = cfg.getboolean('camera', 'video_stabilization')
+		cam.exposure_compensation = cfg.getint('camera', 'exposure_compensation')
+		cam.exposure_mode = cfg.get('camera', 'exposure_mode')
+		cam.meter_mode = cfg.get('camera', 'meter_mode')
+		cam.awb_mode = cfg.get('camera', 'awb_mode')
+		cam.image_effect = cfg.get('camera', 'image_effect')
+		cam.color_effects = (cfg.getint('camera', 'color_effects_1'), cfg.getint('camera', 'color_effects_2'))
+		cam.rotation = cfg.getint('camera', 'rotation')
+		cam.hflip = cfg.getboolean('camera', 'hflip')
+		cam.vflip = cfg.getboolean('camera', 'vflip')
 		print "Takin' a pic..."
-		# cam.ISO(100)
 		# Prendre la photo
 		cam.start_preview()
 		cam.capture(img_dir + '/' + image_name)
