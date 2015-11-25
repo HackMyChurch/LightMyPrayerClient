@@ -13,10 +13,18 @@ import picamera
 import requests
 import ConfigParser
 import os
+import LMPLed
+
+CONFIG_FILE = "config/lmp.conf"
+IMG_CONFIG_FILE = "config/img_index.conf"
 
 # Lecture du fichier de configuration
 cfg = ConfigParser.ConfigParser()
-cfg.read('config/lmp.conf')
+cfg.read(CONFIG_FILE)
+
+# Lecture du dernier index des images
+cfgimg = ConfigParser.ConfigParser()
+cfgimg.read(IMG_CONFIG_FILE)
 
 # Urls Serveur
 url_upload = cfg.get('server', 'url_upload')
@@ -25,6 +33,11 @@ url_upload = cfg.get('server', 'url_upload')
 wait_after_pic   = cfg.getfloat('client', 'wait_after_pic')
 wait_after_open  = cfg.getfloat('client', 'wait_after_open')
 wait_after_cycle = cfg.getfloat('client', 'wait_after_cycle')
+
+# Temps d'animation de leds
+fade_in_time  = cfg.getfloat('leds', 'fade_in_time')
+fade_out_time = cfg.getfloat('leds', 'fade_out_time')
+wait_time     = cfg.getfloat('leds', 'wait_time')
 
 # Variables de seuil pour la detection
 seuil_detection_trappe = cfg.getfloat('sensor_calibration', 'seuil_detection_trappe')
@@ -43,13 +56,18 @@ ir_sensor = 0
 # Pilotage Servo-moteur
 pwm = GPIO.PWM(r.IO0, 100)
 # Index des images
-idx = cfg.getint('client', 'next_img_index')
+idx = cfgimg.getint('images', 'next_img_index')
 # Repertoire des images
 img_dir = cfg.get('client', 'img_dir')
 # Etat du servo de la trappe
 is_locked = True
 
+# Pilotage des LEDS ###########################################################
+leds = LMPLed.LMPLed() # LEDS driver
+leds.setColor(leds.WHITE)
+###############################################################################
 
+# Hack pour recuperer l'ip du client.
 def get_lan_last_ip_num():
 	# Hackish function to get ip addr on linux...
     ip = os.popen("ifconfig eth0 | grep 'inet'").read().split(':')[1]
@@ -78,18 +96,22 @@ def open_the_door():
 	is_locked = False
 
 def capture_image(i):
-    with picamera.PiCamera() as cam:
-        print "Takin' a pic..."
-        cam.start_preview()
-        image_name = client_name + '_%03d.jpg' % i
-        cam.capture(img_dir + '/' + image_name)
-        cam.stop_preview()
-        return image_name
+	# fixer la lumiere
+	leds.fix()
+	with picamera.PiCamera() as cam:
+		print "Takin' a pic..."
+		# Prendre la photo
+		cam.start_preview()
+		image_name = client_name + '_%03d.jpg' % i
+		cam.capture(img_dir + '/' + image_name)
+		cam.stop_preview()
+		return image_name
 
 def save_next_img_index():
 	global idx
 	idx += 1
-	cfg.set('client', 'next_img_index', idx)
+	cfgimg.set('images', 'next_img_index', idx)
+	write_config()
 
 def stone_detection():
 	global last_detection_value
@@ -104,6 +126,8 @@ def stone_detection():
 		else:
 			if last_detection_value > seuil_detection_galet:
 				print ("Stone detected (%f)" % detection_value)
+				# Allumer progressivement
+				leds.fadeIn(fade_in_time)
 				# ici on remet la valeur precedente a la valeur de la trappe
 				# pour eviter de prendre en compte les oscillations
 				last_detection_value = seuil_detection_trappe
@@ -112,6 +136,8 @@ def stone_detection():
 	return ok_for_taking_pic	
 
 def post_picture(name):
+	# Eteindre progressivement les LEDs
+	leds.fadeOut(fade_out_time)
 	try:
 		if url_upload != "":
 			data = { 'image':  open(img_dir + '/' + name) }
@@ -119,6 +145,9 @@ def post_picture(name):
 			print(r.json)
 	except requests.exceptions.ConnectionError:
 		print ("ERROR : Can't upload pic. Server is probably down !")
+
+def write_config():
+	cfgimg.write(open(IMG_CONFIG_FILE,'w'))
 
 ##################################################################
 # Etat initial
@@ -144,11 +173,14 @@ while True:
 			time.sleep(wait_after_open)
 			# 7. Refermer la trappe
 			close_the_door()
+		# Mode wait pour les leds
+		leds.wait(2.0)
 		# Tempo de fin de cycle.
 		time.sleep(wait_after_cycle)
 	# Quit on Ctrl+C
 	except KeyboardInterrupt:
 		close_the_door()
+		write_config()
 		GPIO.cleanup()
 		break
 

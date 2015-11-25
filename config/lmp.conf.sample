@@ -1,17 +1,13 @@
 [sensor_calibration]
-seuil_detection_trappe = 1.80
-seuil_detection_galet = 1.90
-seuil_detection_main = 2.40
+seuil_detection_trappe = 1.630
+seuil_detection_galet = 1.805
+seuil_detection_main = 2.195
 
 [client]
 img_dir = /home/pi/lmp/img
 wait_after_pic = 1
 wait_after_open = 0.6
 wait_after_cycle = 1
-
-# A priori 0 pour cet index, mais il est amené à bouger
-# Il es mis à jour à chaque photo.
-next_img_index = 0
 
 [leds]
 fade_in_time = 5
