@@ -63,6 +63,10 @@ idx = cfgimg.getint('images', 'next_img_index')
 img_dir = cfg.get('client', 'img_dir')
 # Etat du servo de la trappe
 is_locked = True
+# Etape courante 
+state = 'wait'
+#
+waiting_led_launched = False
 
 # Pilotage des LEDS ###########################################################
 leds = LMPLed.LMPLed() # LEDS driver
@@ -117,6 +121,7 @@ def capture_image(i):
 	# fixer la lumiere
 	leds.fix()
 	image_name = client_name + '_%03d.jpg' % i
+	print "Takin' a pic. File is " + image_name
 	with picamera.PiCamera() as cam:
 		cam.resolution = (cfg.getint('camera', 'resolution_h'), cfg.getint('camera', 'resolution_v'))
 		cam.sharpness = cfg.getint('camera', 'sharpness')
@@ -134,12 +139,11 @@ def capture_image(i):
 		cam.rotation = cfg.getint('camera', 'rotation')
 		cam.hflip = cfg.getboolean('camera', 'hflip')
 		cam.vflip = cfg.getboolean('camera', 'vflip')
-		print "Takin' a pic..."
 		# Prendre la photo
 		cam.start_preview()
 		cam.capture(img_dir + '/' + image_name)
 		cam.stop_preview()
-		return image_name
+	return image_name
 
 #
 # Sauvegarder l'index de la derniere image generee afin 
@@ -164,20 +168,26 @@ def save_next_img_index():
 #  ___________/
 #
 def stone_detection():
-	global last_detection_value
+	global last_detection_value, state, waiting_led_launched
 	ok_for_taking_pic = False
 	detection_value = r.readAdc(ir_sensor)
-	print ("Value (%f)" % detection_value)
+	state = 'wait'
 	if detection_value > seuil_detection_trappe:
 		if detection_value > seuil_detection_main:
 			print("Hand is here ! (%f)" % detection_value)
+			state = 'hand'
 			last_detection_value = detection_value
 			ok_for_taking_pic = False
 		else:
 			if last_detection_value > seuil_detection_galet:
 				print ("Stone detected (%f)" % detection_value)
+				state = 'stone'
 				# Allumer progressivement
 				leds.fadeIn(fade_in_time)
+				# On change d'etat de leds alors waiting_led_launched doit changer
+				waiting_led_launched = False
+				# Prendre le temps du fade in des leds
+				time.sleep(fade_in_time)
 				# ici on remet la valeur precedente a la valeur de la trappe
 				# pour eviter de prendre en compte les oscillations
 				last_detection_value = seuil_detection_trappe
@@ -209,12 +219,19 @@ def write_config():
 # Etat initial
 close_the_door()
 last_detection_value = seuil_detection_trappe
+state = 'wait'
 
 ########################## M A I N ###############################
 while True:
 	try:
 		# 1. Voir si l'on detecte une main qui pose le galet
-		print "Waiting for some prayers..."
+		# Mode wait pour les leds
+		if state == 'wait':
+			if not waiting_led_launched:
+				print "Waiting for some prayers..."
+				leds.wait(2.0)
+				waiting_led_launched = True
+
 		if stone_detection():
 			# 2. Prendre un photo du galet
 			img = capture_image(idx)
@@ -229,8 +246,7 @@ while True:
 			time.sleep(wait_after_open)
 			# 7. Refermer la trappe
 			close_the_door()
-		# Mode wait pour les leds
-		leds.wait(2.0)
+
 		# Tempo de fin de cycle.
 		time.sleep(wait_after_cycle)
 	# Quit on Ctrl+C
