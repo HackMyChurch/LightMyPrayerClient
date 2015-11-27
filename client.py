@@ -9,6 +9,7 @@
 from raspiomix import Raspiomix
 import RPi.GPIO as GPIO
 import time
+import datetime
 import picamera
 import requests
 import ConfigParser
@@ -16,15 +17,10 @@ import os
 import LMPLed
 
 CONFIG_FILE = "config/lmp.conf"
-IMG_CONFIG_FILE = "config/img.conf"
 
 # Lecture du fichier de configuration
 cfg = ConfigParser.ConfigParser()
 cfg.read(CONFIG_FILE)
-
-# Lecture du dernier index des images
-cfgimg = ConfigParser.ConfigParser()
-cfgimg.read(IMG_CONFIG_FILE)
 
 # Urls Serveur
 print cfg.sections()
@@ -57,8 +53,9 @@ GPIO.setup(r.IO0, GPIO.OUT) # Mode board = 12, GPIO18
 ir_sensor = 0
 # Pilotage Servo-moteur
 pwm = GPIO.PWM(r.IO0, 100)
-# Index des images
-idx = cfgimg.getint('images', 'next_img_index')
+
+#cfgimg.getint('images', 'next_img_index')
+
 # Repertoire des images
 img_dir = cfg.get('client', 'img_dir')
 # Etat du servo de la trappe
@@ -117,10 +114,10 @@ def open_the_door():
 #
 # Predre la photo du galet en tenant compte des reglages fait en configuration
 #
-def capture_image(i):
+def capture_image():
 	# fixer la lumiere
 	leds.fix()
-	image_name = client_name + '_%03d.jpg' % i
+	image_name = client_name + '_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + '.jpg'
 	print "Takin' a pic. File is " + image_name
 	with picamera.PiCamera() as cam:
 		cam.resolution = (cfg.getint('camera', 'resolution_h'), cfg.getint('camera', 'resolution_v'))
@@ -144,16 +141,6 @@ def capture_image(i):
 		cam.capture(img_dir + '/' + image_name)
 		cam.stop_preview()
 	return image_name
-
-#
-# Sauvegarder l'index de la derniere image generee afin 
-# d'eviter l'ecrasement au prochain redemarrage du client
-#
-def save_next_img_index():
-	global idx
-	idx += 1
-	cfgimg.set('images', 'next_img_index', idx)
-	write_config()
 
 #
 # Algo de detaction du galet
@@ -209,12 +196,6 @@ def post_picture(name):
 	except requests.exceptions.ConnectionError:
 		print ("ERROR : Can't upload pic. Server is probably down !")
 
-#
-# Sauvegarder l'index de la prochaine image a generer pour ne rien ecraser
-#
-def write_config():
-	cfgimg.write(open(IMG_CONFIG_FILE,'w'))
-
 ##################################################################
 # Etat initial
 close_the_door()
@@ -234,17 +215,15 @@ while True:
 
 		if stone_detection():
 			# 2. Prendre un photo du galet
-			img = capture_image(idx)
+			img = capture_image()
 			post_picture(img)
-			# 3. Sauvegarder l'index de la prochaine image
-			save_next_img_index()
-			# 4. Petite tempo pour permettre le traitement de la capture
+			# 3. Petite tempo pour permettre le traitement de la capture
 			time.sleep(wait_after_pic)
-			# 5. Faire tomber le galet
+			# 4. Faire tomber le galet
 			open_the_door()
-			# 6. Temporiser juste assez pour avoir le rebond de la trappe
+			# 5. Temporiser juste assez pour avoir le rebond de la trappe
 			time.sleep(wait_after_open)
-			# 7. Refermer la trappe
+			# 6. Refermer la trappe
 			close_the_door()
 
 		# Tempo de fin de cycle.
@@ -252,7 +231,6 @@ while True:
 	# Quit on Ctrl+C
 	except KeyboardInterrupt:
 		close_the_door()
-		write_config()
 		GPIO.cleanup()
 		break
 
