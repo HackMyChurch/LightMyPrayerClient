@@ -37,7 +37,6 @@ class LMPLed:
     #constructor
     # set all leds to black
     def __init__(self):
-        print "init de la classe..."
         self.setColor(self.BLACK)
         self.update()
 

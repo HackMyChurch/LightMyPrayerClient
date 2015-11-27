@@ -23,8 +23,6 @@ cfg = ConfigParser.ConfigParser()
 cfg.read(CONFIG_FILE)
 
 # Urls Serveur
-print cfg.sections()
-print cfg.items('server') 
 url_upload = cfg.get('server', 'url_upload')
 
 # Temps d'attente du scenario
