@@ -32,3 +32,8 @@ This forces the Raspberry Pi to autologin on `pi` user.
 
 
 More documentation at http://www.opentechguides.com/how-to/article/raspberry-pi/5/raspberry-pi-auto-start.html
+
+## Setting Rasp1 in DHCP/DNS mode
+
+- copy file `/home/pi/lmp/config/dnsmasq.conf` in `/etc/dnsmasq.conf`
+- On Rasp1 , add service start at boot `sudo chkconfig --add dnsmasq`
