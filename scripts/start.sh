@@ -7,6 +7,7 @@
 #
 #
 ###############################################################################
+log="/tmp/lmpclient.log"
 if [ "x$L1" = "xtty1" ]; then
 	clear
 	echo "   __ _       _     _                      ___                           "
@@ -18,8 +19,8 @@ if [ "x$L1" = "xtty1" ]; then
 	cd /home/pi/lmp
 	# Echoing and Saving Both Stdout And Stderr
 	# http://www.skorks.com/2009/09/using-bash-to-output-to-screen-and-file-at-the-same-time/
-	# sudo python client.py 2>&1 | tee /tmp/LMP_client.log
-	sudo python client.py
+	# Option -u pour être en mode 'unbuffered' et envoyer tout de suite sur la sortie standard 
+	sudo python -u client.py 2>&1 | tee $log
 else
   echo "LMP Client not launched : We're not on tty1. Are you in remote ssh ?"
 fi
