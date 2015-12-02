@@ -71,18 +71,14 @@ leds.setColor(leds.WHITE)
 #
 # Hack pour recuperer l'ip du client.
 #
-def get_lan_last_ip_num():
-	# Hackish function to get ip addr on linux...
-    ip = os.popen("ifconfig eth0 | grep 'inet'").read().split(':')[1]
-    ip = str(ip).split(' ')[0]
-    last_ip_num = str(ip).split('.')[3]
-    return last_ip_num
+def get_host_name():
+	return os.popen('hostname').read().rstrip('\n\r ')
 
 #
 # Genere un numero de client pour avoir un nom d'image unique 
 #
-client_name = "raspberry-" + get_lan_last_ip_num()
-
+client_name = get_host_name()
+print "Client name is '" + client_name + "'"
 #
 # Mettre a jour l'angle du servo-moteur
 #
