@@ -1,5 +1,3 @@
 img/
 test*.py
 *.pyc
-config/img.conf
-config/lmp.conf
