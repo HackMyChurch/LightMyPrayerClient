@@ -23,7 +23,7 @@ class LMPLed:
 
     ledsColor = BLACK
     brightness = 1.0
-    minBright = 0.2
+    minBright = 0.1
     maxBright = 1.0
 
     startLedsTime = datetime.datetime.now()
@@ -103,7 +103,8 @@ class LMPLed:
 
         #print("Waiting to the ratio " + str(waitingRatio))
         
-        return waitingRatio
+        # return waitingRatio
+        return self.mapValues(waitingRatio, 0.0, 1.0, 0.0, 0.25)
 
     ################################################################################
     # gives the ratio for fade ratio
