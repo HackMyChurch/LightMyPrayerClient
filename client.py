@@ -50,14 +50,12 @@ GPIO.setup(r.IO0, GPIO.OUT) # Mode board = 12, GPIO18
 # Capteur presence galet, capteur sur entree analogique 0
 ir_sensor = 0
 # Pilotage Servo-moteur
-pwm = GPIO.PWM(r.IO0, 100)
+motor = GPIO.PWM(r.IO0, 50)
 
 #cfgimg.getint('images', 'next_img_index')
 
 # Repertoire des images
 img_dir = cfg.get('client', 'img_dir')
-# Etat du servo de la trappe
-is_locked = True
 # Etape courante 
 state = 'wait'
 #
@@ -79,31 +77,23 @@ def get_host_name():
 #
 client_name = get_host_name()
 print "Client name is '" + client_name + "'"
-#
-# Mettre a jour l'angle du servo-moteur
-#
-def update(angle):
-	# Valeurs calibrees de maniere empirique
-  	duty = float(angle) / 8.8 + 2.5
-	pwm.start(5)
-	pwm.ChangeDutyCycle(duty)
-	pwm.stop
 
 #
-# fermer la trappe
+# Ouverture et fermeture de la porte par pilotage du servo-moteur en pwm
 #
-def close_the_door():
-	print "Lock lock lockin' the heaven door..."
-	update(180)
-	is_locked = True
+def open_close():
+	Frequency = 50             # Hz = 20ms de cycle
+	Percent_Duty_Cycle_Mini = Frequency/10  #=5=1ms c'est un raccourci pour faire 1/50=20ms et prendre 5% (1ms)
+	# on change le dutycycle a 1ms (1ms*1) pour aller a fond a gauche
+	motor.start(Percent_Duty_Cycle_Mini*1) 
+	time.sleep(1)
+	# 1ms * 2 = 2 ms on demarre a fond a droite
+	motor.ChangeDutyCycle(Percent_Duty_Cycle_Mini*2)
+	time.sleep(1)
+	# on change le dutycycle a 1ms (1ms*1) pour aller a fond a gauche
+	motor.ChangeDutyCycle(Percent_Duty_Cycle_Mini*1) 
+	time.sleep(wait_after_cycle)
 
-#
-# Ouvrir la trappe
-#
-def open_the_door():
-	print "Stairway to heaven..."
-	update(90)
-	is_locked = False
 
 #
 # Predre la photo du galet en tenant compte des reglages fait en configuration
@@ -192,7 +182,7 @@ def post_picture(name):
 
 ##################################################################
 # Etat initial
-close_the_door()
+open_close()
 last_detection_value = seuil_detection_trappe
 state = 'wait'
 
@@ -214,17 +204,13 @@ while True:
 			# 3. Petite tempo pour permettre le traitement de la capture
 			time.sleep(wait_after_pic)
 			# 4. Faire tomber le galet
-			open_the_door()
-			# 5. Temporiser juste assez pour avoir le rebond de la trappe
-			time.sleep(wait_after_open)
-			# 6. Refermer la trappe
-			close_the_door()
-
-		# Tempo de fin de cycle.
+			open_close()
+		# 5. Tempo de fin de cycle.
 		time.sleep(wait_after_cycle)
 	# Quit on Ctrl+C
 	except KeyboardInterrupt:
-		close_the_door()
+		open_close()
+		time.sleep(2)
 		GPIO.cleanup()
 		break
 
