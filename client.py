@@ -155,10 +155,11 @@ def stone_detection():
 				state = 'stone'
 				# Allumer progressivement
 				leds.fadeIn(fade_in_time)
+				while not leds.fadeIsDone:
+					leds.update()
+
 				# On change d'etat de leds alors waiting_led_launched doit changer
 				waiting_led_launched = False
-				# Prendre le temps du fade in des leds
-				time.sleep(fade_in_time)
 				# ici on remet la valeur precedente a la valeur de la trappe
 				# pour eviter de prendre en compte les oscillations
 				last_detection_value = seuil_detection_trappe
@@ -172,6 +173,9 @@ def stone_detection():
 def post_picture(name):
 	# Eteindre progressivement les LEDs
 	leds.fadeOut(fade_out_time)
+	while not leds.fadeIsDone:
+		leds.update()
+
 	try:
 		if url_upload != "":
 			data = { 'image':  open(img_dir + '/' + name) }
@@ -194,7 +198,7 @@ while True:
 		if state == 'wait':
 			if not waiting_led_launched:
 				print "Waiting for some prayers..."
-				leds.wait(2.0)
+				leds.wait(wait_time)
 				waiting_led_launched = True
 
 		if stone_detection():
@@ -205,10 +209,13 @@ while True:
 			time.sleep(wait_after_pic)
 			# 4. Faire tomber le galet
 			open_close()
-			# 5. Tempo de fin de cycle.
-			time.sleep(wait_after_cycle)
+		# 5. Tempo de fin de cycle.
+		time.sleep(wait_after_cycle)
+		leds.update()
 	# Quit on Ctrl+C
 	except KeyboardInterrupt:
+		leds.setColor(leds.BLACK)
+		leds.update()
 		open_close()
 		time.sleep(2)
 		GPIO.cleanup()
