@@ -20,7 +20,8 @@ if [ "x$L1" = "xtty1" ]; then
 	# Echoing and Saving Both Stdout And Stderr
 	# http://www.skorks.com/2009/09/using-bash-to-output-to-screen-and-file-at-the-same-time/
 	# Option -u pour être en mode 'unbuffered' et envoyer tout de suite sur la sortie standard 
-	sudo python -u client.py 2>&1 | tee $log
+	# sudo python -u client.py 2>&1 | tee $log
+	sudo python -u client.py 1>>$log 2>>$log
 else
   echo "LMP Client not launched : We're not on tty1. Are you in remote ssh ?"
 fi
