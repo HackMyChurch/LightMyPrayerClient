@@ -1,3 +1,4 @@
 img/
 test*.py
 *.pyc
+config/lmp.conf
