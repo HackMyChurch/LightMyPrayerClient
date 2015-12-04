@@ -35,6 +35,8 @@ class LMPLed:
     fadeTime = datetime.datetime.now()
     fadePeriod = 10.0
     fadeIsDone = False
+    # fix the light
+    fixBrightness = 0.0
     
     #constructor
     # set all leds to black
@@ -83,8 +85,9 @@ class LMPLed:
         print("FADE OUT Launched---------------")
         
     # fade leds to full brightness
-    def fix(self):
+    def fix(self, bright):
         self.mode = self.modeFix
+        self.fixBrightness = bright
         print("FIX LIGHT Launched---------------")
         
     ################################################################################
@@ -130,6 +133,15 @@ class LMPLed:
         #print("Fading to the ratio " + str(fadeRatio) + ", isDone?" + str(self.fadeIsDone))
         
         return fadeRatio
+    
+    ################################################################################
+    # gives the ratio for fade ratio
+    # calculation based on the difference between start moment and current moment
+    # with a little smooth effect based on sinus
+    ################################################################################
+    def fixRatio(self):
+
+        return self.fixBrightness
 
     ##########################################################################
     # calculates constantly the brightness and sets the leds
@@ -153,7 +165,7 @@ class LMPLed:
             
         elif(self.mode == self.modeFix):
             # fix light
-            ratioTime = 1.0
+            ratioTime = self.fixRatio()
             
         else:
             ratioTime = 0.0
@@ -172,7 +184,11 @@ class LMPLed:
         b = self.ledsColor[0][2]* self.brightness
 
         pixels = [ (r,g,b) ] * self.numLEDs
-        pixels[self.MAGIC_PIXEL] = (int(self.MAX_BRIGHTNESS_FOR_MP - r), int(self.MAX_BRIGHTNESS_FOR_MP - g), int(self.MAX_BRIGHTNESS_FOR_MP - b)) 
+        if(self.mode == self.modeWait):
+            pixels[self.MAGIC_PIXEL] = (255, 255, 255)
+        else:
+            pixels[self.MAGIC_PIXEL] = (0, 0, 0)
+        # pixels[self.MAGIC_PIXEL] = (int(self.MAX_BRIGHTNESS_FOR_MP - r), int(self.MAX_BRIGHTNESS_FOR_MP - g), int(self.MAX_BRIGHTNESS_FOR_MP - b)) 
         self.client.put_pixels(pixels)
 
 

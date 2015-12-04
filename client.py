@@ -100,7 +100,7 @@ def open_close():
 #
 def capture_image():
 	# fixer la lumiere
-	leds.fix()
+	leds.fix(1.0)
 	leds.update()
 	image_name = client_name + '_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + '.jpg'
 	print "Takin' a pic. File is " + image_name
@@ -173,10 +173,9 @@ def stone_detection():
 #
 def post_picture(name):
 	# Eteindre progressivement les LEDs
-	leds.fadeOut(fade_out_time)
-	while not leds.fadeIsDone:
-		leds.update()
-
+	# leds.fadeOut(fade_out_time)
+	# while not leds.fadeIsDone:
+	# 	leds.update()
 	try:
 		if url_upload != "":
 			data = { 'image':  open(img_dir + '/' + name) }
@@ -205,6 +204,11 @@ while True:
 		if stone_detection():
 			# 2. Prendre un photo du galet
 			img = capture_image()
+
+			leds.fix(0)
+			leds.update()
+
+			# leds.setColor(leds.BLACK)
 			post_picture(img)
 			# 3. Petite tempo pour permettre le traitement de la capture
 			time.sleep(wait_after_pic)
@@ -212,10 +216,11 @@ while True:
 			open_close()
 		# 5. Tempo de fin de cycle.
 		time.sleep(wait_after_cycle)
+		# leds.setColor(leds.WHITE)
 		leds.update()
 	# Quit on Ctrl+C
 	except KeyboardInterrupt:
-		leds.setColor(leds.BLACK)
+		leds.setBrightness(0)
 		leds.update()
 		open_close()
 		time.sleep(2)

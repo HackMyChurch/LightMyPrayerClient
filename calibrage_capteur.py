@@ -232,7 +232,7 @@ while True:
 		seuil_detection_galet  = cfg.getfloat('sensor_calibration', 'seuil_detection_galet')
 		wait_time = cfg.getfloat('leds', 'wait_time')
 		print_values()
-		time.sleep(1)
+		time.sleep(0.5)
 	# Quit on Ctrl+C
 	except KeyboardInterrupt:
 		leds.setColor(leds.BLACK)
