@@ -11,6 +11,8 @@ import math, time, datetime
 class LMPLed:
     BLACK = [ (0,0,0) ]
     WHITE = [ (255,255,255) ]
+    MAGIC_PIXEL = 0 # Pixel fixe pour les besoin du scenario
+    MAX_BRIGHTNESS_FOR_MP = 100.0 # Brillance max du magic pixel
 
     modeFix = "fix"
     modeWait = "wait"
@@ -54,7 +56,7 @@ class LMPLed:
             outVal = outputMin
 
 	return outVal
-    
+
     # set the global brightness
     def setBrightness(self, brightness):
         self.brightness = self.mapValues(brightness, 0.0, 1.0, self.minBright, self.maxBright)
@@ -170,6 +172,7 @@ class LMPLed:
         b = self.ledsColor[0][2]* self.brightness
 
         pixels = [ (r,g,b) ] * self.numLEDs
+        pixels[self.MAGIC_PIXEL] = (int(self.MAX_BRIGHTNESS_FOR_MP - r), int(self.MAX_BRIGHTNESS_FOR_MP - g), int(self.MAX_BRIGHTNESS_FOR_MP - b)) 
         self.client.put_pixels(pixels)
 
 
