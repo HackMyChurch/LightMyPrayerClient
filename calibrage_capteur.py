@@ -100,7 +100,7 @@ print "Client name is '" + client_name + "'"
 #
 def capture_image():
 	# fixer la lumiere
-	leds.fix()
+	leds.fix(1.0)
 	image_name = client_name + '_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + '.jpg'
 	print "Takin' a pic. File is " + image_name
 	# with picamera.PiCamera() as cam:
