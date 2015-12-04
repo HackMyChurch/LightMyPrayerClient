@@ -75,7 +75,7 @@ def get_host_name():
 #
 # Genere un numero de client pour avoir un nom d'image unique 
 #
-client_name = get_host_name()
+client_name  =  get_host_name()
 print "Client name is '" + client_name + "'"
 
 #
@@ -89,7 +89,7 @@ def open_close():
 	time.sleep(1)
 	# 1ms * 2 = 2 ms on demarre a fond a droite
 	motor.ChangeDutyCycle(Percent_Duty_Cycle_Mini*2)
-	time.sleep(1)
+	time.sleep(wait_after_open)
 	# on change le dutycycle a 1ms (1ms*1) pour aller a fond a gauche
 	motor.ChangeDutyCycle(Percent_Duty_Cycle_Mini*1) 
 	time.sleep(wait_after_cycle)
@@ -101,6 +101,7 @@ def open_close():
 def capture_image():
 	# fixer la lumiere
 	leds.fix()
+	leds.update()
 	image_name = client_name + '_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + '.jpg'
 	print "Takin' a pic. File is " + image_name
 	with picamera.PiCamera() as cam:
