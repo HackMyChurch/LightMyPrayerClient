@@ -26,9 +26,13 @@ cfg.read(CONFIG_FILE)
 url_upload = cfg.get('server', 'url_upload')
 
 # Temps d'attente du scenario
+wait_before_pic = 1.5
 wait_after_pic   = cfg.getfloat('client', 'wait_after_pic')
 wait_after_open  = cfg.getfloat('client', 'wait_after_open')
+wait_after_close = 0.1
+wait_init_motor = 0.2
 wait_after_cycle = cfg.getfloat('client', 'wait_after_cycle')
+wait_before_cleanup_gpio = 1
 
 # Temps d'animation de leds
 fade_in_time  = cfg.getfloat('leds', 'fade_in_time')
@@ -65,6 +69,13 @@ waiting_led_launched = False
 leds = LMPLed.LMPLed() # LEDS driver
 leds.setColor(leds.WHITE)
 ###############################################################################
+# 
+# Petite fonction de Wait pour le debug
+#
+def waiting(sometime):
+	# print "waiting for (%f) sec." % sometime
+	time.sleep(sometime)
+	# print "done."
 
 #
 # Hack pour recuperer l'ip du client.
@@ -86,13 +97,14 @@ def open_close():
 	Percent_Duty_Cycle_Mini = Frequency/10  #=5=1ms c'est un raccourci pour faire 1/50=20ms et prendre 5% (1ms)
 	# on change le dutycycle a 1ms (1ms*1) pour aller a fond a gauche
 	motor.start(Percent_Duty_Cycle_Mini*1) 
-	time.sleep(1)
+	waiting(wait_init_motor)
 	# 1ms * 2 = 2 ms on demarre a fond a droite
 	motor.ChangeDutyCycle(Percent_Duty_Cycle_Mini*2)
-	time.sleep(wait_after_open)
+	waiting(wait_after_open)
 	# on change le dutycycle a 1ms (1ms*1) pour aller a fond a gauche
 	motor.ChangeDutyCycle(Percent_Duty_Cycle_Mini*1) 
-	time.sleep(wait_after_cycle)
+	waiting(wait_after_close)
+	#motor.stop()
 
 
 #
@@ -102,6 +114,7 @@ def capture_image():
 	# fixer la lumiere
 	leds.fix(1.0)
 	leds.update()
+	waiting(wait_before_pic)
 	image_name = client_name + '_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + '.jpg'
 	print "Takin' a pic. File is " + image_name
 	with picamera.PiCamera() as cam:
@@ -182,7 +195,7 @@ def post_picture(name):
 			r = requests.post(url_upload, files=data)
 			print(r.json)
 	except requests.exceptions.ConnectionError:
-		print ("ERROR : Can't upload pic. Server is probably down !")
+		print ("ERROR : Can't upload pic. Server is probably down or not reachable !")
 
 ##################################################################
 # Etat initial
@@ -211,19 +224,19 @@ while True:
 			# leds.setColor(leds.BLACK)
 			post_picture(img)
 			# 3. Petite tempo pour permettre le traitement de la capture
-			time.sleep(wait_after_pic)
+			waiting(wait_after_pic)
 			# 4. Faire tomber le galet
 			open_close()
 		# 5. Tempo de fin de cycle.
-		time.sleep(wait_after_cycle)
+		waiting(wait_after_cycle)
 		# leds.setColor(leds.WHITE)
 		leds.update()
 	# Quit on Ctrl+C
 	except KeyboardInterrupt:
-		leds.setBrightness(0)
+		leds.fix(0)
 		leds.update()
 		open_close()
-		time.sleep(2)
+		waiting(wait_before_cleanup_gpio)
 		GPIO.cleanup()
 		break
 
