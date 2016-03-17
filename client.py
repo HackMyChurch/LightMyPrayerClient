@@ -195,15 +195,13 @@ def stone_detection():
 	ok_for_taking_pic = False
 	detection_value = r.readAdc(ir_sensor)
 	state = 'wait'
-	# Si on detecte un front montant
 	if detection_value > seuil_detection_main:
 		print("Hand is here ! (%f)" % detection_value)
 		state = 'hand'
-		last_detection_value = detection_value
 		ok_for_taking_pic = False
 	else:
-		# ici plus ou pas de main : on regarde si la valeur precedente etait une main
-		if last_detection_value < seuil_detection_main:
+		# inferieur au seuil de la main, il faut analyser la valeur precedente
+		if last_detection_value >= seuil_detection_main and detection_value < seuil_detection_main:
 			print ("Stone detected (%f)" % detection_value)
 			state = 'stone'
 			# Allumer progressivement
@@ -213,10 +211,13 @@ def stone_detection():
 
 			# On change d'etat de leds alors waiting_led_launched doit changer
 			waiting_led_launched = False
-			last_detection_value = seuil_detection_trappe
 			ok_for_taking_pic =  True
+		# else:
+		# 	print ("Waiting for prayer (%f)" % detection_value)
 			
-	return ok_for_taking_pic	
+	last_detection_value = detection_value
+	return ok_for_taking_pic
+
 #
 # Poster l'image au serveur de diffusion
 #
