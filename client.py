@@ -26,13 +26,13 @@ cfg.read(CONFIG_FILE)
 url_upload = cfg.get('server', 'url_upload')
 
 # Temps d'attente du scenario
-wait_before_pic = 1.5
-wait_after_pic   = cfg.getfloat('client', 'wait_after_pic')
-wait_after_open  = cfg.getfloat('client', 'wait_after_open')
-wait_after_close = 0.1
-wait_init_motor = 0.2
-wait_after_cycle = cfg.getfloat('client', 'wait_after_cycle')
-wait_before_cleanup_gpio = 1
+wait_before_pic  		 = cfg.getfloat('client', 'wait_before_pic')
+wait_after_pic   		 = cfg.getfloat('client', 'wait_after_pic')
+wait_after_open  		 = cfg.getfloat('client', 'wait_after_open')
+wait_after_close 		 = cfg.getfloat('client', 'wait_after_close')
+wait_init_motor  		 = cfg.getfloat('client', 'wait_init_motor')
+wait_after_cycle 		 = cfg.getfloat('client', 'wait_after_cycle')
+wait_before_cleanup_gpio = cfg.getfloat('client', 'wait_before_cleanup_gpio')
 
 # Temps d'animation de leds
 fade_in_time  = cfg.getfloat('leds', 'fade_in_time')
