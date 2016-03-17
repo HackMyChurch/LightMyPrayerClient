@@ -38,7 +38,7 @@ wait_time     = cfg.getfloat('leds', 'wait_time')
 # Variables de seuil pour la detection
 seuil_detection_trappe = cfg.getfloat('sensor_calibration', 'seuil_detection_trappe')
 seuil_detection_main   = cfg.getfloat('sensor_calibration', 'seuil_detection_main')
-seuil_detection_galet  = cfg.getfloat('sensor_calibration', 'seuil_detection_galet')
+# seuil_detection_galet  = cfg.getfloat('sensor_calibration', 'seuil_detection_galet')
 
 last_detection_value = seuil_detection_trappe
 
@@ -138,34 +138,61 @@ def capture_image():
 #  trappe      /               \____________ 
 #  ___________/
 #
-def stone_detection():
-	global detection_value, last_detection_value, seuil_detection_trappe, seuil_detection_main, seuil_detection_galet, state, waiting_led_launched
-	ok_for_taking_pic = False
-	state = 'wait'
-	if detection_value > seuil_detection_trappe:
-		if detection_value > seuil_detection_main:
-			print("Hand is here ! (%f)" % detection_value)
-			state = 'hand'
-			last_detection_value = detection_value
-			ok_for_taking_pic = False
-		else:
-			if last_detection_value > seuil_detection_galet:
-				print ("Stone detected (%f)" % detection_value)
-				state = 'stone'
-				# Allumer progressivement
-				leds.fadeIn(fade_in_time)
-				while not leds.fadeIsDone:
-					leds.update()
+# def stone_detection():
+# 	global detection_value, last_detection_value, seuil_detection_trappe, seuil_detection_main, seuil_detection_galet, state, waiting_led_launched
+# 	ok_for_taking_pic = False
+# 	state = 'wait'
+# 	if detection_value > seuil_detection_trappe:
+# 		if detection_value > seuil_detection_main:
+# 			print("Hand is here ! (%f)" % detection_value)
+# 			state = 'hand'
+# 			last_detection_value = detection_value
+# 			ok_for_taking_pic = False
+# 		else:
+# 			if last_detection_value > seuil_detection_galet:
+# 				print ("Stone detected (%f)" % detection_value)
+# 				state = 'stone'
+# 				# Allumer progressivement
+# 				leds.fadeIn(fade_in_time)
+# 				while not leds.fadeIsDone:
+# 					leds.update()
 
-				# On change d'etat de leds alors waiting_led_launched doit changer
-				waiting_led_launched = False
-				# ici on remet la valeur precedente a la valeur de la trappe
-				# pour eviter de prendre en compte les oscillations
-				last_detection_value = seuil_detection_trappe
-				ok_for_taking_pic =  True
+# 				# On change d'etat de leds alors waiting_led_launched doit changer
+# 				waiting_led_launched = False
+# 				# ici on remet la valeur precedente a la valeur de la trappe
+# 				# pour eviter de prendre en compte les oscillations
+# 				last_detection_value = seuil_detection_trappe
+# 				ok_for_taking_pic =  True
+			
+# 	return ok_for_taking_pic
+	
+def stone_detection():
+	global last_detection_value, state, waiting_led_launched
+	ok_for_taking_pic = False
+	detection_value = r.readAdc(ir_sensor)
+	state = 'wait'
+	# Si on detecte un front montant
+	if detection_value > seuil_detection_main:
+		print("Hand is here ! (%f)" % detection_value)
+		state = 'hand'
+		last_detection_value = detection_value
+		ok_for_taking_pic = False
+	else:
+		# ici plus ou pas de main : on regarde si la valeur precedente etait une main
+		if last_detection_value < seuil_detection_main:
+			print ("Stone detected (%f)" % detection_value)
+			state = 'stone'
+			# Allumer progressivement
+			leds.fadeIn(fade_in_time)
+			while not leds.fadeIsDone:
+				leds.update()
+
+			# On change d'etat de leds alors waiting_led_launched doit changer
+			waiting_led_launched = False
+			last_detection_value = seuil_detection_trappe
+			ok_for_taking_pic =  True
 			
 	return ok_for_taking_pic	
-
 #
 # Poster l'image au serveur de diffusion
 #
@@ -188,7 +215,7 @@ def print_values():
 	print ('Valeurs de calibration : ')
 	print ('--------------------------------------------')
 	print ("seuil_detection_trappe = " + str(seuil_detection_trappe))
-	print ("seuil_detection_galet  = " + str(seuil_detection_galet))
+	# print ("seuil_detection_galet  = " + str(seuil_detection_galet))
 	print ("seuil_detection_main   = " + str(seuil_detection_main))
 	print ('--------------------------------------------')
 	print ("Valeur lue = " +  str(detection_value))
@@ -229,7 +256,7 @@ while True:
 		cfg.read('config/lmp.conf')
 		seuil_detection_trappe = cfg.getfloat('sensor_calibration', 'seuil_detection_trappe')
 		seuil_detection_main   = cfg.getfloat('sensor_calibration', 'seuil_detection_main')
-		seuil_detection_galet  = cfg.getfloat('sensor_calibration', 'seuil_detection_galet')
+		# seuil_detection_galet  = cfg.getfloat('sensor_calibration', 'seuil_detection_galet')
 		wait_time = cfg.getfloat('leds', 'wait_time')
 		print_values()
 		time.sleep(0.5)
