@@ -187,7 +187,7 @@ def capture_image():
 #  trappe      /               \     trappe
 #  ___________/                 \_______________
 #
-# Le déclenchement de la photo se fait sur le 1er front descendant 
+# Le declenchement de la photo se fait sur le 1er front descendant 
 # qui suit le front montant
 #
 def stone_detection():
