@@ -1,24 +1,25 @@
 [sensor_calibration]
-seuil_detection_trappe = 1.630
-seuil_detection_galet = 1.805
-seuil_detection_main = 2.195
+seuil_detection_trappe = 1.525
+seuil_detection_galet = 1.6335
+seuil_detection_main =  1.850
+# 1.955
 
 [client]
 img_dir = /home/pi/lmp/img
-wait_after_pic = 1
-wait_after_open = 0.6
-wait_after_cycle = 1
+wait_after_pic = 0.01
+wait_after_open = 0.5
+wait_after_cycle = 0.1
 
 [leds]
-fade_in_time = 5
-fade_out_time = 5
-wait_time = 2
+fade_in_time = 1
+fade_out_time = 3
+wait_time = 10
 
 [server]
-url_upload = http://192.168.1.59:9292/lmp/image/upload
+url_upload = http://192.168.1.15:9292/lmp/image/upload
 
 [camera]
-# 2592x1944, 1280x720 , ..., 640x480
+#
 resolution_h = 1024
 resolution_v = 768
 
@@ -26,13 +27,13 @@ resolution_v = 768
 sharpness = 100
 
 # between -100 and 100
-contrast = 100
+contrast = 30
 
 # 0 to 100
-brightness = 100
+brightness = 50
 
 # between -100 and 100
-saturation = 100
+saturation = 0
 
 # 100, 200, 400, 800
 ISO = 100
@@ -45,24 +46,24 @@ exposure_compensation = 0
 
 # , off, auto, night, nightpreview, backlight, spotlight, sports, 
 # snow, beach, verylong, fixedfps, antishake, fireworks
-exposure_mode = sports
+exposure_mode = off
 
 # average, spot, backlit, matrix
 meter_mode = average
 
 # off, auto, sunlight, cloudy, shade, tungsten, fluorescent, incandescent, flash, horizon
-awb_mode = incandescent
+awb_mode = off
 
 # none, negative, solarize, sketch, denoise, emboss, 
 # oilpaint, hatch, gpen, pastel, watercolor, film, blur, saturation
-image_effect = negative
+image_effect = none
 
 # default None, 0 to 128
 color_effects_1 = 128
 color_effects_2 = 128
 
 # Valid values are 0, 90, 180, and 270
-rotation = 0
+rotation = 270
 
 # True or False
 hflip = True
