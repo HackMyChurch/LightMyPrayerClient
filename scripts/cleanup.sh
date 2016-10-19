@@ -5,6 +5,6 @@
 #	Cleanup Script
 #
 ###############################################################################
-rm -f /home/pi/lmp/rasp*.jpg
+rm -f /home/pi/lmp/img/rasp*.jpg
 rm -f /tmp/lmpclient.log
 touch /tmp/lmpclient.log
