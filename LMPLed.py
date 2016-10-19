@@ -5,6 +5,8 @@
 import opc
 import math, time, datetime
 
+debug_mode = False
+
 #################################################################
 # Class able to drive Leds
 #################################################################
@@ -44,20 +46,24 @@ class LMPLed:
         self.setColor(self.BLACK)
         self.update()
 
+    # Logging de debug
+    def debug_log(self, s):
+        if debug_mode:
+            print s
+
     # set the new color of leds (depneding to brightness
     def setColor(self, color):
         self.ledsColor = color
-        #print("color is : " + str(self.ledsColor))
+        #self.debug_log("color is : " + str(self.ledsColor))
 
     def mapValues(self, value, inputMin, inputMax, outputMin, outputMax):
         outVal = ((value - inputMin) / (inputMax - inputMin) * (outputMax - outputMin) + outputMin)
-	
+    
         if( outVal > outputMax ):
             outVal = outputMax;
         elif( outVal < outputMin ):
             outVal = outputMin
-
-	return outVal
+        return outVal
 
     # set the global brightness
     def setBrightness(self, brightness):
@@ -68,27 +74,27 @@ class LMPLed:
     def wait(self, period):
         self.waitPeriod = period
         self.mode = self.modeWait
-        print("WAITING Launched---------------")
+        self.debug_log("WAITING Launched---------------")
         
     # fade leds to full brightness
     def fadeIn(self, period):
         self.fadePeriod = period
         self.mode = self.modeFadeIn
         self.fadeTime = datetime.datetime.now()
-        print("FADE IN Launched---------------")
+        self.debug_log("FADE IN Launched---------------")
         
     # fade leds to full brightness
     def fadeOut(self, period):
         self.fadePeriod = period
         self.mode = self.modeFadeOut
         self.fadeTime = datetime.datetime.now()
-        print("FADE OUT Launched---------------")
+        self.debug_log("FADE OUT Launched---------------")
         
     # fade leds to full brightness
     def fix(self, bright):
         self.mode = self.modeFix
         self.fixBrightness = bright
-        print("FIX LIGHT Launched---------------")
+        self.debug_log("FIX LIGHT Launched---------------")
         
     ################################################################################
     # gives the ratio for waiting mode
@@ -106,7 +112,7 @@ class LMPLed:
         waitingRatio = (diffTime.total_seconds() % self.waitPeriod) / self.waitPeriod
         waitingRatio = math.fabs(math.sin(waitingRatio * 2*math.pi))
 
-        #print("Waiting to the ratio " + str(waitingRatio))
+        #self.debug_log("Waiting to the ratio " + str(waitingRatio))
         
         # return waitingRatio
         return self.mapValues(waitingRatio, 0.0, 1.0, 0.0, 0.25)
@@ -130,7 +136,7 @@ class LMPLed:
         else:
             self.fadeIsDone = False
 
-        #print("Fading to the ratio " + str(fadeRatio) + ", isDone?" + str(self.fadeIsDone))
+        #self.debug_log("Fading to the ratio " + str(fadeRatio) + ", isDone?" + str(self.fadeIsDone))
         
         return fadeRatio
     
@@ -172,10 +178,10 @@ class LMPLed:
 
         #ratioTime = self.brightness + ratioTime
 
-        # print("Ratio = " + str(ratioTime) + " : " + "brightness = " + str(self.brightness))
+        # self.debug_log("Ratio = " + str(ratioTime) + " : " + "brightness = " + str(self.brightness))
         
         # Brightness is ratio ;)
-        # print("Cureent Birghtness : " + str(ratioTime))
+        # self.debug_log("Cureent Birghtness : " + str(ratioTime))
         self.setBrightness(ratioTime)
 
         # send the color to the strip
@@ -191,7 +197,3 @@ class LMPLed:
         # pixels[self.MAGIC_PIXEL] = (int(self.MAX_BRIGHTNESS_FOR_MP - r), int(self.MAX_BRIGHTNESS_FOR_MP - g), int(self.MAX_BRIGHTNESS_FOR_MP - b)) 
         self.client.put_pixels(pixels)
 
-
-        
-        
-    

@@ -16,6 +16,8 @@ import ConfigParser
 import os
 import LMPLed
 
+debug_mode = False
+
 CONFIG_FILE = "config/lmp.conf"
 
 # Lecture du fichier de configuration
@@ -69,13 +71,20 @@ waiting_led_launched = False
 leds = LMPLed.LMPLed() # LEDS driver
 leds.setColor(leds.WHITE)
 ###############################################################################
+#
+# Logging de debug
+#
+def debug_log(s):
+	if debug_mode:
+		print s
+
 # 
 # Petite fonction de Wait pour le debug
 #
 def waiting(sometime):
-	# print "waiting for (%f) sec." % sometime
+	# debug_log ("waiting for (%f) sec." % sometime)
 	time.sleep(sometime)
-	# print "done."
+	# debug_log ("done.")
 
 #
 # Hack pour recuperer l'ip du client.
@@ -87,7 +96,7 @@ def get_host_name():
 # Genere un numero de client pour avoir un nom d'image unique 
 #
 client_name  =  get_host_name()
-print "Client name is '" + client_name + "'"
+debug_log ("Client name is '" + client_name + "'")
 
 #
 # Ouverture et fermeture de la porte par pilotage du servo-moteur en pwm
@@ -116,7 +125,7 @@ def capture_image():
 	leds.update()
 	waiting(wait_before_pic)
 	image_name = client_name + '_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S') + '.jpg'
-	print "Takin' a pic. File is " + image_name
+	debug_log ("Takin' a pic. File is " + image_name)
 	with picamera.PiCamera() as cam:
 		cam.resolution = (cfg.getint('camera', 'resolution_h'), cfg.getint('camera', 'resolution_v'))
 		cam.sharpness = cfg.getint('camera', 'sharpness')
@@ -159,13 +168,13 @@ def capture_image():
 # 	state = 'wait'
 # 	if detection_value > seuil_detection_trappe:
 # 		if detection_value > seuil_detection_main:
-# 			print("Hand is here ! (%f)" % detection_value)
+# 			debug_log("Hand is here ! (%f)" % detection_value)
 # 			state = 'hand'
 # 			last_detection_value = detection_value
 # 			ok_for_taking_pic = False
 # 		else:
 # 			if last_detection_value > seuil_detection_galet:
-# 				print ("Stone detected (%f)" % detection_value)
+# 				debug_log ("Stone detected (%f)" % detection_value)
 # 				state = 'stone'
 # 				# Allumer progressivement
 # 				leds.fadeIn(fade_in_time)
@@ -196,13 +205,13 @@ def stone_detection():
 	detection_value = r.readAdc(ir_sensor)
 	state = 'wait'
 	if detection_value > seuil_detection_main:
-		print("Hand is here ! (%f)" % detection_value)
+		debug_log("Hand is here ! (%f)" % detection_value)
 		state = 'hand'
 		ok_for_taking_pic = False
 	else:
 		# inferieur au seuil de la main, il faut analyser la valeur precedente
 		if last_detection_value >= seuil_detection_main and detection_value < seuil_detection_main:
-			print ("Stone detected (%f)" % detection_value)
+			debug_log ("Stone detected (%f)" % detection_value)
 			state = 'stone'
 			# Allumer progressivement
 			leds.fadeIn(fade_in_time)
@@ -213,7 +222,7 @@ def stone_detection():
 			waiting_led_launched = False
 			ok_for_taking_pic =  True
 		# else:
-		# 	print ("Waiting for prayer (%f)" % detection_value)
+		# 	debug_log ("Waiting for prayer (%f)" % detection_value)
 			
 	last_detection_value = detection_value
 	return ok_for_taking_pic
@@ -230,9 +239,9 @@ def post_picture(name):
 		if url_upload != "":
 			data = { 'image':  open(img_dir + '/' + name) }
 			r = requests.post(url_upload, files=data)
-			print(r.json)
+			debug_log(r.json)
 	except requests.exceptions.ConnectionError:
-		print ("ERROR : Can't upload pic. Server is probably down or not reachable !")
+		debug_log ("ERROR : Can't upload pic. Server is probably down or not reachable !")
 
 ##################################################################
 # Etat initial
@@ -247,7 +256,7 @@ while True:
 		# Mode wait pour les leds
 		if state == 'wait':
 			if not waiting_led_launched:
-				print "Waiting for some prayers..."
+				debug_log ("Waiting for some prayers...")
 				leds.wait(wait_time)
 				waiting_led_launched = True
 
@@ -276,4 +285,3 @@ while True:
 		waiting(wait_before_cleanup_gpio)
 		GPIO.cleanup()
 		break
-
