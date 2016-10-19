@@ -5,14 +5,15 @@
 import opc
 import math, time, datetime
 
-debug_mode = False
-
 #################################################################
 # Class able to drive Leds
 #################################################################
 class LMPLed:
+    debug_mode = False
     BLACK = [ (0,0,0) ]
     WHITE = [ (255,255,255) ]
+    RED = (255,0,0)
+    GREEN = (0,255,0)
     MAGIC_PIXEL = 0 # Pixel fixe pour les besoin du scenario
     MAX_BRIGHTNESS_FOR_MP = 100.0 # Brillance max du magic pixel
 
@@ -20,6 +21,9 @@ class LMPLed:
     modeWait = "wait"
     modeFadeIn = "fadeIn"
     modeFadeOut = "fadeOut"
+    modeCommand = "Command"
+    modeReboot = "Rebbot"
+    modeShutdown = "Shutdown"
     mode = modeFix
 
     numLEDs = 512
@@ -48,13 +52,12 @@ class LMPLed:
 
     # Logging de debug
     def debug_log(self, s):
-        if debug_mode:
+        if self.debug_mode:
             print s
 
     # set the new color of leds (depneding to brightness
     def setColor(self, color):
         self.ledsColor = color
-        #self.debug_log("color is : " + str(self.ledsColor))
 
     def mapValues(self, value, inputMin, inputMax, outputMin, outputMax):
         outVal = ((value - inputMin) / (inputMax - inputMin) * (outputMax - outputMin) + outputMin)
@@ -96,6 +99,23 @@ class LMPLed:
         self.fixBrightness = bright
         self.debug_log("FIX LIGHT Launched---------------")
         
+    # Mode Command
+    def command(self, period):
+        self.fadePeriod = period
+        self.mode = self.modeCommand
+        self.fadeTime = datetime.datetime.now()
+        self.debug_log("COMMAND Launched---------------")
+        
+    # Mode Command shutdown
+    def shutdown(self):
+        self.mode = self.modeShutdown
+        self.debug_log("COMMAND SHUTDOWN Launched---------------")
+        
+    # Mode Command
+    def reboot(self):
+        self.mode = self.modeReboot
+        self.debug_log("COMMAND REBOOT Launched---------------")
+        
     ################################################################################
     # gives the ratio for waiting mode
     # calclucation base dof the difference betwenn satrt moment and current moment
@@ -112,8 +132,6 @@ class LMPLed:
         waitingRatio = (diffTime.total_seconds() % self.waitPeriod) / self.waitPeriod
         waitingRatio = math.fabs(math.sin(waitingRatio * 2*math.pi))
 
-        #self.debug_log("Waiting to the ratio " + str(waitingRatio))
-        
         # return waitingRatio
         return self.mapValues(waitingRatio, 0.0, 1.0, 0.0, 0.25)
 
@@ -135,8 +153,6 @@ class LMPLed:
             self.fadeIsDone = True
         else:
             self.fadeIsDone = False
-
-        #self.debug_log("Fading to the ratio " + str(fadeRatio) + ", isDone?" + str(self.fadeIsDone))
         
         return fadeRatio
     
@@ -172,16 +188,14 @@ class LMPLed:
         elif(self.mode == self.modeFix):
             # fix light
             ratioTime = self.fixRatio()
-            
+
+        elif(self.mode == self.modeCommand):
+            ratioTime = self.waitingRatio()
+
         else:
             ratioTime = 0.0
 
-        #ratioTime = self.brightness + ratioTime
-
-        # self.debug_log("Ratio = " + str(ratioTime) + " : " + "brightness = " + str(self.brightness))
-        
         # Brightness is ratio ;)
-        # self.debug_log("Cureent Birghtness : " + str(ratioTime))
         self.setBrightness(ratioTime)
 
         # send the color to the strip
@@ -190,10 +204,19 @@ class LMPLed:
         b = self.ledsColor[0][2]* self.brightness
 
         pixels = [ (r,g,b) ] * self.numLEDs
+
+        # Gestion de la led MAGIC_PIXEL
         if(self.mode == self.modeWait):
             pixels[self.MAGIC_PIXEL] = (255, 255, 255)
+
+        elif(self.mode == self.modeCommand or self.mode == self.modeShutdown):   
+            pixels[self.MAGIC_PIXEL] = self.RED
+
+        elif(self.mode == self.modeReboot):   
+            pixels[self.MAGIC_PIXEL] = self.GREEN
+
         else:
             pixels[self.MAGIC_PIXEL] = (0, 0, 0)
-        # pixels[self.MAGIC_PIXEL] = (int(self.MAX_BRIGHTNESS_FOR_MP - r), int(self.MAX_BRIGHTNESS_FOR_MP - g), int(self.MAX_BRIGHTNESS_FOR_MP - b)) 
+
         self.client.put_pixels(pixels)
 

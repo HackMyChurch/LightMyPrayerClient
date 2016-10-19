@@ -58,6 +58,12 @@ ir_sensor = 0
 # Pilotage Servo-moteur
 motor = GPIO.PWM(r.IO0, 50)
 
+control_button = 35 #r.IO4
+# Bouton marche/arret/reboot
+GPIO.setup(control_button, GPIO.IN, pull_up_down = GPIO.PUD_UP) 
+mode_commande_actif = False
+timestamp_commande = 0.0
+
 #cfgimg.getint('images', 'next_img_index')
 
 # Repertoire des images
@@ -77,6 +83,53 @@ leds.setColor(leds.WHITE)
 def debug_log(s):
 	if debug_mode:
 		print s
+
+#
+# Shutdown function
+#
+def shutdown(option):
+	debug_log("sudo shutdown -" + option + " now")
+	os.system("sudo shutdown -" + option + " now")
+
+#
+# traiter l'action du bouton
+#
+# 1 appuie : reboot
+# 2 appuies en moins d'une seconde : Shutdown
+#
+def treat_button_action(channel):
+	global mode_commande_actif, timestamp_commande
+	if mode_commande_actif == False:
+		# Faire clignoter la LED de la trappe en ROUGE (mode commande)
+		leds.command(1.0)
+		# Attendre un deuxieme appuie sur le bouton pour arreter le systeme
+		mode_commande_actif = True
+		timestamp_commande = datetime.datetime.now();
+		debug_log ("Command mode activated at" + str(timestamp_commande))
+		# Remonter la pin du bouton a 1
+		GPIO.setup(control_button, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+	else:
+		# Le mode comande est actif, on traite la commande
+		timeDiff = datetime.datetime.now() - timestamp_commande
+		if timeDiff.total_seconds() < 2:
+			# shutdown
+			debug_log("Shutdown lauched...")
+			# Fixer la LED de la trappe en VERT pendant 1 seconde
+			leds.shutdown()
+			option = "h"
+		else:
+			# Sinon Reboot du systeme
+			debug_log("Reboot lauched...")
+			# Fixer la LED de la trappe en ROUGE pendant une seconde
+			leds.reboot()
+			option = "r"
+		mode_commande_actif = False
+		timestamp_commande = 0
+		shutdown(option)
+	leds.update()
+
+# Interrution sur changement de front du bouton  
+GPIO.add_event_detect(control_button, GPIO.FALLING, callback = treat_button_action, bouncetime = 50)  
 
 # 
 # Petite fonction de Wait pour le debug
@@ -248,7 +301,7 @@ def post_picture(name):
 open_close()
 last_detection_value = seuil_detection_trappe
 state = 'wait'
-
+first = True
 ########################## M A I N ###############################
 while True:
 	try:
