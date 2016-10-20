@@ -14,7 +14,7 @@ class LMPLed:
     WHITE = [ (255,255,255) ]
     RED = (255,0,0)
     GREEN = (0,255,0)
-    MAGIC_PIXEL = 0 # Pixel fixe pour les besoin du scenario
+    MAGIC_PIXEL = 0 # Pixel fixe pour les besoins du scenario
     MAX_BRIGHTNESS_FOR_MP = 100.0 # Brillance max du magic pixel
 
     modeFix = "fix"
@@ -71,47 +71,46 @@ class LMPLed:
     # set the global brightness
     def setBrightness(self, brightness):
         self.brightness = self.mapValues(brightness, 0.0, 1.0, self.minBright, self.maxBright)
-        #self.brightness = brightness
         
-    # fade leds to full brightness
+    # Wait mode
     def wait(self, period):
         self.waitPeriod = period
         self.mode = self.modeWait
         self.debug_log("WAITING Launched---------------")
         
-    # fade leds to full brightness
+    # Fade In mode
     def fadeIn(self, period):
         self.fadePeriod = period
         self.mode = self.modeFadeIn
         self.fadeTime = datetime.datetime.now()
         self.debug_log("FADE IN Launched---------------")
         
-    # fade leds to full brightness
+    # Fade out mode
     def fadeOut(self, period):
         self.fadePeriod = period
         self.mode = self.modeFadeOut
         self.fadeTime = datetime.datetime.now()
         self.debug_log("FADE OUT Launched---------------")
         
-    # fade leds to full brightness
+    # Fix mode : no fade
     def fix(self, bright):
         self.mode = self.modeFix
         self.fixBrightness = bright
         self.debug_log("FIX LIGHT Launched---------------")
         
-    # Mode Command
+    # Command Mode
     def command(self, period):
         self.fadePeriod = period
         self.mode = self.modeCommand
         self.fadeTime = datetime.datetime.now()
         self.debug_log("COMMAND Launched---------------")
         
-    # Mode Command shutdown
+    # Shutdown Command mode
     def shutdown(self):
         self.mode = self.modeShutdown
         self.debug_log("COMMAND SHUTDOWN Launched---------------")
         
-    # Mode Command
+    # Reboot Command mode
     def reboot(self):
         self.mode = self.modeReboot
         self.debug_log("COMMAND REBOOT Launched---------------")
@@ -132,7 +131,6 @@ class LMPLed:
         waitingRatio = (diffTime.total_seconds() % self.waitPeriod) / self.waitPeriod
         waitingRatio = math.fabs(math.sin(waitingRatio * 2*math.pi))
 
-        # return waitingRatio
         return self.mapValues(waitingRatio, 0.0, 1.0, 0.0, 0.25)
 
     ################################################################################
@@ -170,23 +168,18 @@ class LMPLed:
     # has to be constantly called in mainLoop to manage leds
     ##########################################################################
     def update(self):
-
         ratioTime = 0.0
 
         if(self.mode == self.modeWait):
-            # Waing : chasing up and down
             ratioTime = self.waitingRatio()
             
         elif(self.mode == self.modeFadeIn):
-            # Waiting : Fading up and stop
             ratioTime = self.fadeRatio()
             
         elif(self.mode == self.modeFadeOut):
-            # Waiting : Fading up and stop
             ratioTime = 1 - self.fadeRatio()
             
         elif(self.mode == self.modeFix):
-            # fix light
             ratioTime = self.fixRatio()
 
         elif(self.mode == self.modeCommand):
@@ -219,4 +212,3 @@ class LMPLed:
             pixels[self.MAGIC_PIXEL] = (0, 0, 0)
 
         self.client.put_pixels(pixels)
-
