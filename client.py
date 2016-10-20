@@ -8,12 +8,7 @@
 ##################################################################
 from raspiomix import Raspiomix
 import RPi.GPIO as GPIO
-import time
-import datetime
-import picamera
-import requests
-import ConfigParser
-import os
+import time, datetime, picamera, requests, ConfigParser, os
 import LMPLed
 
 debug_mode = False
@@ -63,8 +58,6 @@ control_button = 35 #r.IO4
 GPIO.setup(control_button, GPIO.IN, pull_up_down = GPIO.PUD_UP) 
 mode_commande_actif = False
 timestamp_commande = 0.0
-
-#cfgimg.getint('images', 'next_img_index')
 
 # Repertoire des images
 img_dir = cfg.get('client', 'img_dir')
@@ -274,8 +267,6 @@ def stone_detection():
 			# On change d'etat de leds alors waiting_led_launched doit changer
 			waiting_led_launched = False
 			ok_for_taking_pic =  True
-		# else:
-		# 	debug_log ("Waiting for prayer (%f)" % detection_value)
 			
 	last_detection_value = detection_value
 	return ok_for_taking_pic
@@ -320,7 +311,6 @@ while True:
 			leds.fix(0)
 			leds.update()
 
-			# leds.setColor(leds.BLACK)
 			post_picture(img)
 			# 3. Petite tempo pour permettre le traitement de la capture
 			waiting(wait_after_pic)
@@ -328,7 +318,6 @@ while True:
 			open_close()
 		# 5. Tempo de fin de cycle.
 		waiting(wait_after_cycle)
-		# leds.setColor(leds.WHITE)
 		leds.update()
 	# Quit on Ctrl+C
 	except KeyboardInterrupt:
