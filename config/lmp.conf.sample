@@ -5,17 +5,17 @@ seuil_detection_main =  1.850
 
 [client]
 img_dir = /home/pi/lmp/img
-wait_before_pic = 1.5
+wait_before_pic = 0
 wait_after_pic = 0.01
 wait_after_open = 0.5
-wait_after_close = 0.1
+wait_after_close = 0
 wait_after_cycle = 0.1
 wait_init_motor = 0.2
 wait_before_cleanup_gpio = 1
 
 [leds]
 fade_in_time = 1
-fade_out_time = 3
+fade_out_time = 1.5
 wait_time = 10
 
 [server]
