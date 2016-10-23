@@ -13,5 +13,5 @@ touch /tmp/lmpclient.log
 echo "cleaning epiphany cahe"
 rm -f home/pi/.cache/epiphany-browser/*
 echo "cleaning trash"
-rm -f /home/pi/.local/share/Trash/files/
-rm -f /home/pi/.local/share/Trash/info/
+rm -f /home/pi/.local/share/Trash/files/*
+rm -f /home/pi/.local/share/Trash/info/*
