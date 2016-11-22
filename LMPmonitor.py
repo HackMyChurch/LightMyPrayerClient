@@ -6,15 +6,18 @@
 #
 ##################################################################
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
+from SocketServer import ThreadingMixIn
+import threading
 import json, os
 
 PORT_NUMBER = 9000
+SESSION_TIMEOUT = 5 # in Second
 
 #
 # Espace disponible
 #
-def available_space():
-	result = os.popen("df -hm /home/pi | grep '/' | cut -d' ' -f21").read()
+def used_space():
+	result = os.popen("df -hm /home/pi | grep '/' | cut -d' ' -f23").read()
 	return result.rstrip()
 
 #
@@ -61,8 +64,10 @@ def halt():
 
 #This class will handles any incoming request from the browser 
 class httpMonitor(BaseHTTPRequestHandler):
-	
-	#Handler for the GET requests
+
+        # self.request.settimeout(SESSION_TIMEOUT)
+
+	# Handler for the GET requests
 	def do_GET(self):
 		print self.path
 
@@ -71,7 +76,7 @@ class httpMonitor(BaseHTTPRequestHandler):
 			json_resp = { 
 							"stderr":"", "data" : 
 							{ 
-								"available_space": available_space(), 
+								"used_space": used_space(), 
 								"images_count":images_count(), 
 								"lues_service": lues_service(),
 								"dhcp_service": dhcp_service()
@@ -122,10 +127,20 @@ class httpMonitor(BaseHTTPRequestHandler):
 			json.dump(json_resp, self.wfile)
 			return
 
+# class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+#     """Handle requests in a separate thread."""
+
+# if __name__ == '__main__':
+#     server = ThreadedHTTPServer(('', PORT_NUMBER), httpMonitor)
+#     server.socket.settimeout(SESSION_TIMEOUT)
+#     print 'Starting server, use <Ctrl-C> to stop'
+#     server.serve_forever()
 
 try:
 	#Create a web server and define the handler to manage the incoming request
 	server = HTTPServer(('', PORT_NUMBER), httpMonitor)
+	print server
+	server.socket.settimeout(SESSION_TIMEOUT)
 	print 'Started httpserver on port ' , PORT_NUMBER
 	
 	#Wait forever for incoming htto requests
