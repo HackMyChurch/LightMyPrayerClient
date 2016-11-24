@@ -172,6 +172,9 @@ class LMPLed:
 
         if(self.mode == self.modeWait):
             ratioTime = self.waitingRatio()
+            # Ajuster ce ratio a la luminosite forte de la salle METAStadt
+            # Uniquement pour le mode wait
+            ratioTime = ratioTime * 2
             
         elif(self.mode == self.modeFadeIn):
             ratioTime = self.fadeRatio()
