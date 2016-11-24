@@ -122,7 +122,8 @@ def treat_button_action(channel):
 	leds.update()
 
 # Interrution sur changement de front du bouton  
-GPIO.add_event_detect(control_button, GPIO.FALLING, callback = treat_button_action, bouncetime = 50)  
+##### Seems not to be effective ??? BUGGY BUGGY !
+##### GPIO.add_event_detect(control_button, GPIO.FALLING, callback = treat_button_action, bouncetime = 50)  
 
 # 
 # Petite fonction de Wait pour le debug
